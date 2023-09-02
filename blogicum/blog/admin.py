@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Local Imports
-from .models import Category, Location, Post
+from .models import Category, Location, Post, Comment
 
 
 class PostInline(admin.StackedInline):
@@ -12,6 +12,15 @@ class PostInline(admin.StackedInline):
         'title',
         'author',
         'location',
+    )
+
+
+class CommentInline(admin.StackedInline):
+    model = Comment
+    extra = 0
+    fields = (
+        'author',
+        'text',
     )
 
 
@@ -45,6 +54,9 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = (
         'category',
         'location',
+    )
+    inlines = (
+        CommentInline,
     )
 
     @admin.display(empty_value='Планета Земля')
@@ -96,3 +108,14 @@ class LocationAdmin(admin.ModelAdmin):
     )
     search_fields = ('name',)
     list_editable = ('is_published',)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'text',
+        'author',
+    )
+    exclude = ('post',)
+    list_display_links = ('text',)
+    search_fields = ('author',)

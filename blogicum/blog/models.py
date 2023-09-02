@@ -1,14 +1,17 @@
 # Django Library
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
 # Local Imports
-from blog.utils import get_full_name
 from core.models import CreatedAtModel, PublishedModel, TitleModel
 
 User = get_user_model()
-User.add_to_class('get_full_name', get_full_name)
+User.add_to_class(
+    'get_full_name',
+    lambda user: f'{user.first_name} {user.last_name}',
+)
 
 
 # For all further classes next is appliable:
@@ -134,6 +137,9 @@ class Comment(CreatedAtModel):
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
 
+    def __str__(self) -> str:
+        return str(self.created_at)
+
 
 class Post(TitleModel, PublishedModel, CreatedAtModel):
     """
@@ -177,7 +183,7 @@ class Post(TitleModel, PublishedModel, CreatedAtModel):
     image = models.ImageField(
         verbose_name='Иллюстрация',
         blank=True,
-        upload_to='post_images',
+        upload_to=settings.POST_IMAGES
     )
     author = models.ForeignKey(
         User,

@@ -18,7 +18,6 @@ from django.views.generic.list import MultipleObjectMixin
 # Local Imports
 from .forms import CommentForm, PostForm, UpdateUserForm
 from .models import Category, Comment, Post, User
-from .utils import get_comment_or_404, get_post_or_404
 from core.constants import ITEMS_TO_SHOW
 
 
@@ -53,20 +52,26 @@ class PostDetailView(DetailView):
         *args: Any,
         **kwargs: Any
     ) -> TypeVar('HttpResponse'):
-        get_post_or_404(self)
+        get_object_or_404(
+            Post.objects.select_related(
+                "author",
+                "location",
+                "category",
+            ),
+            pk=self.kwargs['pk'],
+        )
         if (self.get_object().author != request.user
                 and not self.get_object().is_published_post):
             raise Http404
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        context['comments'] = (
-            Comment.objects.filter(post__id=self.get_object().pk)
-            .select_related('author').order_by('created_at')
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        return dict(
+            **super().get_context_data(**kwargs),
+            comments=(Comment.objects.filter(post__id=self.get_object().pk)
+                      .select_related('author').order_by('created_at')),
+            form=CommentForm(),
         )
-        context['form'] = CommentForm()
-        return context
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -134,9 +139,10 @@ class PostDeleteView(
     Only post's author is approved.
     '''
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = {'instance': self.object}
-        return context
+        return dict(
+            **super().get_context_data(**kwargs),
+            form={'instance': self.object},
+        )
 
     def get_success_url(self) -> str:
         return reverse(
@@ -176,7 +182,14 @@ class AddComment(CommentMixin, LoginRequiredMixin, CreateView):
         *args: Any,
         **kwargs: Any
     ) -> TypeVar('HttpResponse'):
-        self.commented_post = get_post_or_404(self)
+        self.commented_post = get_object_or_404(
+            Post.objects.select_related(
+                "author",
+                "location",
+                "category",
+            ),
+            pk=self.kwargs['pk'],
+        )
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(
@@ -201,8 +214,19 @@ class EditComment(CommentMixin, LoginRequiredMixin, UpdateView):
         *args: Any,
         **kwargs: Any
     ) -> TypeVar('HttpResponse'):
-        get_comment_or_404(self, request)
-        self.commented_post = get_post_or_404(self)
+        get_object_or_404(
+            Comment.objects.select_related('post'),
+            pk=self.kwargs['comment_id'],
+            author=request.user.id,
+        )
+        self.commented_post = get_object_or_404(
+            Post.objects.select_related(
+                "author",
+                "location",
+                "category",
+            ),
+            pk=self.kwargs['pk'],
+        )
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(
@@ -224,7 +248,11 @@ class DeleteComment(CommentMixin, LoginRequiredMixin, DeleteView):
         request: TypeVar('HttpRequest'),
         *args: Any, **kwargs: Any,
     ) -> TypeVar('HttpResponse'):
-        get_comment_or_404(self, request)
+        get_object_or_404(
+            Comment.objects.select_related('post'),
+            pk=self.kwargs['comment_id'],
+            author=request.user.id,
+        )
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -248,7 +276,6 @@ class CategoryView(DetailView, MultipleObjectMixin):
         )
         object_list = (category
                        .posts(manager='published_posts')
-                       .all()
                        .order_by('-pub_date'))
         context = super().get_context_data(object_list=object_list, **kwargs)
         context['category'] = category
@@ -278,7 +305,7 @@ class ShowUserProfile(DetailView, MultipleObjectMixin):
             manager = 'published_posts'
         else:
             manager = 'objects'
-        object_list = (profile.posts(manager=manager).all()
+        object_list = (profile.posts(manager=manager)
                        .order_by('-pub_date'))
         context = super().get_context_data(object_list=object_list, **kwargs)
         context['profile'] = profile
