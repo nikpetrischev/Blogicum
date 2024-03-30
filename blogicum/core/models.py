@@ -4,7 +4,7 @@ from django.utils import timezone
 
 
 # Custom manager that checks if post is to be shown.
-# (is_published flag is on, pub_date is not in future,
+# (is_published flag is on, pub_date is not in the future,
 # and category is published)
 class PublishedManager(models.Manager):
     def get_queryset(self):

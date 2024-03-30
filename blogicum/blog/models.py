@@ -14,7 +14,7 @@ User.add_to_class(
 )
 
 
-# For all further classes next is appliable:
+# For all further classes next is applicable:
 # ...
 # Inherits:
 # ---------
@@ -24,11 +24,11 @@ User.add_to_class(
 #             flag if entity is to be shown
 #     manager:
 #         published_objects:
-#             custom manager that filters by value of aforemenshioned field
+#             custom manager that filters by value of aforementioned field
 # CreatedAtModel ->
 #     fields:
 #         created_at: DateTimeField
-#             automaticaly checks when entity was created
+#             automatically checks when entity was created
 
 
 class Category(TitleModel, PublishedModel, CreatedAtModel):
@@ -45,14 +45,14 @@ class Category(TitleModel, PublishedModel, CreatedAtModel):
                 title of entity with up to 256 chars length
         overrides:
             __str__ -> string
-                returns readble name of entity
+                returns readable name of entity
 
     ...
 
     Fields:
     -------
     description: TextField
-        desribes what this category is about
+        describes what this category is about
     slug: SlugField
         short verbose identifier for category
     """
@@ -84,7 +84,7 @@ class Location(PublishedModel, CreatedAtModel):
     Overrides:
     ----------
         __str__ -> string
-            returns readble name of entity
+            returns readable name of entity
     """
     name = models.CharField(max_length=256, verbose_name='Название места')
 
@@ -110,7 +110,7 @@ class Comment(CreatedAtModel):
     Overrides:
     ----------
         __str__ -> string
-            returns readble name of entity
+            returns readable name of entity
     ForeignKeys:
     ------------
     author
@@ -155,7 +155,7 @@ class Post(TitleModel, PublishedModel, CreatedAtModel):
                 title of entity with up to 256 chars length
         overrides:
             __str__ -> string
-                returns readble name of entity
+                returns readable name of entity
 
     ...
 
@@ -164,7 +164,7 @@ class Post(TitleModel, PublishedModel, CreatedAtModel):
     text: TextField
         post itself
     pub_date: DateTimeField
-        exact time of delayed publishment
+        exact time of delayed publication
     ForeignKeys:
     ------------
     author

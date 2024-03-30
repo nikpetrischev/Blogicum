@@ -25,9 +25,9 @@ from core.constants import ITEMS_TO_SHOW
 # Post related views
 # ******************
 class PostListView(ListView):
-    '''
+    """
     Generate list of published posts for the homepage.
-    '''
+    """
     model = Post
     queryset = Post.published_posts.select_related(
         'author',
